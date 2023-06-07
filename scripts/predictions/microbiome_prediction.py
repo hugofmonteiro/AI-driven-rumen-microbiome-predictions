@@ -219,8 +219,6 @@ df_RFI_pred = pd.DataFrame({'Observed DMI, kg/d': y_true_best, 'Predicted DMI, k
 # Save the DataFrame as a CSV file
 df_RFI_pred.to_csv('DMI_Model_and_Microbiome_observed_vs_predicted.csv', index=False)
 
-import pandas as pd
-
 df_RFI_pred
 
 # Create a new column with the categories
