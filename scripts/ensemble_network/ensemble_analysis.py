@@ -1,7 +1,10 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib_venn import venn3
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib_venn import venn3
+import networkx as nx
+from fa2 import ForceAtlas2
+from networkx.linalg.graphmatrix import adjacency_matrix
 
 # ## First: Upload the main taxonomy dataframe naming the variables
 ALL_variableNames_MLRidge = pd.read_csv('ALL_variableNames_MLRidge.csv')
@@ -110,12 +113,6 @@ LinDA_values = set(LinDA["Name"])
 
 #import networkx as nx
 #print(nx.__version__)
-
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
-from fa2 import ForceAtlas2
-from networkx.linalg.graphmatrix import adjacency_matrix
 
 # Replace this with your actual DataFrame
 df = pd.DataFrame(merged_complete)
