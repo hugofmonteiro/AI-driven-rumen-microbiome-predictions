@@ -4,13 +4,12 @@ import sklearn
 import statsmodels.api as sm
 import sklearn.metrics as metrics
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.linear_model import LinearRegression, Ridge, SGDRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error, explained_variance_score
+from sklearn.linear_model import Ridge
+from sklearn.metrics import mean_squared_error, explained_variance_score
 from sklearn.preprocessing import StandardScaler
 import sklearn.feature_selection as skfs
 from sklearn.metrics import accuracy_score, r2_score
 from mlxtend.feature_selection import SequentialFeatureSelector
-from sklearn.linear_model import Ridge
 from tabulate import tabulate
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -21,13 +20,15 @@ warnings.filterwarnings("ignore")
 microbiomeRFI_Variables = pd.read_csv('ALL_complete_without_repeatedAnimals.csv')
 microbiomeRFI_Variables.columns.to_list()
 
-microbiomeRFI_Variables.RFI_half.value_counts()
+# Dataset containing microbiome variables at the Phylum, Class, Order, Family and Genus level
+# Data contain variables as microbial counts, relative abundance, and centered-log ratio normalization structure
+# Remove from drop Parity, ExpN, NESec, MBW, and BEC when predicting DMI, MFE, and MPE
+X = microbiomeRFI_Variables.drop(['Obs', 'ID', 'FDAT', 'Site', 'Exp', 'ExpN', 'Lact', 'Parity', 'ParityN', 'FirstDIM', 'LastDIM', 'DOBS', 'GFE', 'DMI', 'DMI_tercile', 'RFI', 'RMFE','RMPE','RMLE','PCoA1', 'PCoA2', 'DietNEL', 'NELI', 'Milk', 'Milk_tercile', 'Milk305', 'PCTF', 'MFPE', 'PCTF_MBW', 'PCTF_BEC', 'PCTP', 'PCTL', 'MFE', 'MPE', 'MLE', 'FatY', 'FatY_tercile', 'FatY_quartile', 'ProtY', 'LactY', 'ECM', 'NESec', 'BW', 'BWC', 'BCS', 'MBW' ,'BEC', 'gMilk', 'gFat', 'gProt', 'PL', 'SCS', 'DPR', 'CCR', 'HCR', 'LIV', 'GL', 'gRFI', 'MFV', 'DAB', 'KET', 'MAS', 'MET', 'RPL', 'EFC', 'HLV', 'FS', 'NM$', 'FM$', 'CM$', 'GM$', 'rMilk', 'rFat', 'rProt', 'rPL', 'rSCS', 'rDPR', 'CrCR', 'rHCR', 'rLIV', 'rGL', 'rRFI', 'rMFV', 'rDAB', 'rKET', 'rMAS', 'rMET', 'rRPL', 'rEFC', 'rHLV', 'rFS', 'rNM$', 'rFM$', 'rCM$', 'rGM$', 'RFI_half', 'GFE_groups', 'DMI_groups', 'RFI_0L1Me2Mo_groups', 'RFI_quartile',  'RFI_percentile', 'DietNEL_groups', 'NELI_groups', 'Milk_groups', 'PCTF_groups', 'FatY_PCTF_groups', 'FatY_DMI_groups', 'PCTP_groups', 'ProtY_PCTP_groups', 'ProtY_DMI_groups', 'PCTL_groups', 'LactY_PCTL_groups', 'LactY_DMI_groups', 'MFE_groups', 'MPE_groups', 'MLE_groups', 'FatY_groups', 'ProtY_groups', 'LactY_groups', 'ECM_groups', 'NESec_groups', 'BW_groups', 'MBW_groups', 'BWC_groups', 'BCS_groups', 'BEC_groups', 'gMilk_groups', 'gFat_groups', 'gProt_groups', 'PL_groups', 'SCS_groups', 'DPR_groups', 'CCR_groups', 'HCR_groups', 'LIV_groups', 'GL_groups', 'RFI_groups', 'MFV_groups', 'DAB_groups', 'KET_groups', 'MAS_groups', 'MET_groups', 'RPL_groups', 'EFC_groups', 'HLV_groups', 'FS_groups', 'NM$_groups', 'FM$_groups', 'CM$_groups', 'GM$_groups', 'rMilk_groups', 'rFat_groups', 'rProt_groups', 'rPL_groups', 'rSCS_groups', 'rDPR_groups', 'CrCR_groups', 'rHCR_groups', 'rLIV_groups', 'rGL_groups', 'rRFI_groups', 'rMFV_groups', 'rDAB_groups', 'rKET_groups', 'rMAS_groups', 'rMET_groups', 'rRPL_groups', 'rEFC_groups', 'rHLV_groups', 'rFS_groups', 'rNM$_groups', 'rFM$_groups', 'rCM$_groups', 'rGM$_groups'], axis=1)
 
-X = microbiomeRFI_Variables.drop(['Obs', 'ID', 'FDAT', 'Site', 'Exp', 'ExpN', 'Lact', 'ParityN', 'FirstDIM', 'LastDIM', 'DOBS', 'GFE', 'DMI', 'DMI_tercile', 'RFI', 'RMFE','RMPE','RMLE','PCoA1', 'PCoA2', 'DietNEL', 'NELI', 'Milk', 'Milk_tercile', 'Milk305', 'PCTF', 'MFPE', 'PCTF_MBW', 'PCTF_BEC', 'PCTP', 'PCTL', 'MFE', 'MPE', 'MLE', 'FatY', 'FatY_tercile', 'FatY_quartile', 'ProtY', 'LactY', 'ECM', 'BW', 'BWC', 'BCS', 'gMilk', 'gFat', 'gProt', 'PL', 'SCS', 'DPR', 'CCR', 'HCR', 'LIV', 'GL', 'gRFI', 'MFV', 'DAB', 'KET', 'MAS', 'MET', 'RPL', 'EFC', 'HLV', 'FS', 'NM$', 'FM$', 'CM$', 'GM$', 'rMilk', 'rFat', 'rProt', 'rPL', 'rSCS', 'rDPR', 'CrCR', 'rHCR', 'rLIV', 'rGL', 'rRFI', 'rMFV', 'rDAB', 'rKET', 'rMAS', 'rMET', 'rRPL', 'rEFC', 'rHLV', 'rFS', 'rNM$', 'rFM$', 'rCM$', 'rGM$', 'RFI_half', 'GFE_groups', 'DMI_groups', 'RFI_0L1Me2Mo_groups', 'RFI_quartile',  'RFI_percentile', 'DietNEL_groups', 'NELI_groups', 'Milk_groups', 'PCTF_groups', 'FatY_PCTF_groups', 'FatY_DMI_groups', 'PCTP_groups', 'ProtY_PCTP_groups', 'ProtY_DMI_groups', 'PCTL_groups', 'LactY_PCTL_groups', 'LactY_DMI_groups', 'MFE_groups', 'MPE_groups', 'MLE_groups', 'FatY_groups', 'ProtY_groups', 'LactY_groups', 'ECM_groups', 'NESec_groups', 'BW_groups', 'MBW_groups', 'BWC_groups', 'BCS_groups', 'BEC_groups', 'gMilk_groups', 'gFat_groups', 'gProt_groups', 'PL_groups', 'SCS_groups', 'DPR_groups', 'CCR_groups', 'HCR_groups', 'LIV_groups', 'GL_groups', 'RFI_groups', 'MFV_groups', 'DAB_groups', 'KET_groups', 'MAS_groups', 'MET_groups', 'RPL_groups', 'EFC_groups', 'HLV_groups', 'FS_groups', 'NM$_groups', 'FM$_groups', 'CM$_groups', 'GM$_groups', 'rMilk_groups', 'rFat_groups', 'rProt_groups', 'rPL_groups', 'rSCS_groups', 'rDPR_groups', 'CrCR_groups', 'rHCR_groups', 'rLIV_groups', 'rGL_groups', 'rRFI_groups', 'rMFV_groups', 'rDAB_groups', 'rKET_groups', 'rMAS_groups', 'rMET_groups', 'rRPL_groups', 'rEFC_groups', 'rHLV_groups', 'rFS_groups', 'rNM$_groups', 'rFM$_groups', 'rCM$_groups', 'rGM$_groups'], axis=1)
-
+# Correct when predicting MFE and MPE
 X['Parity'] = X['Parity'].replace({'Mult': 1, 'Prim': 0})
 
-y = microbiomeRFI_Variables.loc[:,['DMI']].values
+y = microbiomeRFI_Variables.loc[:,['RFI']].values
 
 #### Standardization
 
@@ -44,6 +45,7 @@ from sklearn.preprocessing import StandardScaler
 scFeatures = StandardScaler()
 X=scFeatures.fit_transform(X)
 
+# Filtering microbial variables present in just too few cows was also tested
 # Filtering 0 variables different than the average of that column
 X = pd.DataFrame(X)
 def delete_variables(X):
@@ -175,16 +177,15 @@ for feature in best_features:
 # Set seaborn style
 sns.set_style("whitegrid")
 
-# UC Davis color palette
+# Changing the color palette
 ucd_blue = '#002855'
 ucd_gold = '#FFC72C'
 
 # Plot observed vs. predicted values for the best model
 plt.figure(figsize=(10, 10))
 plt.scatter(y_true_best, y_pred_best, alpha=0.7, color=ucd_blue, edgecolors='k', linewidths=0.5, s=60)
-plt.xlabel('Observed DMI, kg/d', fontsize=18)
-plt.ylabel('Model + Microbiome Predicted DMI, kg/d', fontsize=18)
-plt.title('10-Fold Cross-Validation', fontsize=18)
+plt.xlabel('Observed RFI, kg/d', fontsize=18)
+plt.ylabel('pMicrobiome RFI, kg/d', fontsize=18)
 
 # Add a diagonal line
 min_val, max_val = min(y_true_best.min(), y_pred_best.min()), max(y_true_best.max(), y_pred_best.max())
@@ -210,14 +211,14 @@ ax.tick_params(colors='k')
 ax.tick_params(axis='x', labelsize=18)
 ax.tick_params(axis='y', labelsize=18)
 
-plt.savefig('DMI_Model_and_Microbiome_observed_vs_predicted_Ridge.png', dpi=300, bbox_inches='tight')
+plt.savefig('RFI_pMicrobiome_observed_vs_predicted_Ridge.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # Create a DataFrame with the observed and predicted values
-df_RFI_pred = pd.DataFrame({'Observed DMI, kg/d': y_true_best, 'Predicted DMI, kg/d': y_pred_best})
+df_RFI_pred = pd.DataFrame({'Observed RFI, kg/d': y_true_best, 'Predicted RFI, kg/d': y_pred_best})
 
 # Save the DataFrame as a CSV file
-df_RFI_pred.to_csv('DMI_Model_and_Microbiome_observed_vs_predicted.csv', index=False)
+df_RFI_pred.to_csv('RFI_pMicrobiome_observed_vs_predicted.csv', index=False)
 
 df_RFI_pred
 
@@ -225,17 +226,17 @@ df_RFI_pred
 df_RFI_pred['Category'] = ['true positive' if (obs > 0) & (pred > 0) else
                            'true negative' if (obs < 0) & (pred < 0) else
                            'false positive' if (obs < 0) & (pred > 0) else
-                           'false negative' for obs, pred in zip(df_RFI_pred['Observed DMI, kg/d'], df_RFI_pred['Predicted DMI, kg/d'])]
+                           'false negative' for obs, pred in zip(df_RFI_pred['Observed RFI, kg/d'], df_RFI_pred['Predicted RFI, kg/d'])]
 
 # Print the updated dataframe
 print(df_RFI_pred)
 
 # Save the DataFrame as a CSV file
-df_RFI_pred.to_csv('DMI_Model_and_Microbiome_predicted_categories.csv', index=False)
+df_RFI_pred.to_csv('RFI_pMicrobiome_predicted_categories.csv', index=False)
 
 RFI_Rates = df_RFI_pred['Category'].value_counts(normalize=True) * 100
 
 RFI_Rates
 
 # Save the DataFrame as a CSV file
-RFI_Rates.to_csv('DMI_Model_and_Microbiome_Categories_Rates.csv', index=True)
+RFI_Rates.to_csv('RFI_pMicrobiome_Categories_Rates.csv', index=True)
